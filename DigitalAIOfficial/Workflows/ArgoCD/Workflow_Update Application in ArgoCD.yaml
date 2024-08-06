@@ -140,20 +140,123 @@ spec:
       - remote
       applicationName: "${applicationName}"
     color: '#3d6c9e'
-  - phase: Update Managed Application
+  - phase: Create live deployment config
     tasks:
-    - name: Update Application in Release
-      type: managedApplications.UpdateApplication
-      folderId: "${folderId}"
-      applicationName: "${applicationName}"
-      managedBy: "${managedBy}"
-      environmentTag: "${environmentTag}"
-      applicationReference: "${clusterUrl}"
-      deleteWorkflowId: "${deleteWorkflowId}"
-      updateWorkflowId: "${updateWorkflowId}"
-      variableMapping:
-        pythonScript.managedApplicationId: "${managedApplicationId}"
-        pythonScript.connectionServer: "${argoCDApiServer}"
+      - name: "Live Deployments: Input"
+        type: xlrelease.UserInputTask
+        description: Please enter the required information below.
+        variables:
+          - createNewDeploymentConfig
+          - deploymentConfigName
+          - deploymentConfigType
+          - appsToTrack
+      - name: Create live deployment config
+        type: liveDeployments.CreateDeployment
+        deploymentConfigName: "${deploymentConfigName}"
+        applications: "${appsToTrack}"
+        precondition: |-
+          import json
+
+          if releaseVariables["createNewDeploymentConfig"] == False:
+            result = False
+          else:
+            result = True
+        variableMapping:
+          pythonScript.connectionServer: "${argoCDApiServer}"
+      - name: Apply generated ArgoCD ConfigMap
+        type: xlrelease.Task
+        description: |-
+          **DIGITAL.ai Release**
+          - HTTP Endpoint for Webhooks configured.
+          - ArgoCD Deployment Configuration (Container) configured.
+          - ArgoCD Webhook Source (Container) configured.
+
+          **FOLLOW STEPS BELOW TO FINISH CONFIGURING LIVE DEPLOYMENTS**
+          Within folder where this workflow is exectued:
+          - Navigate to **Connections** -> **ArgoCD Webhook Source (Container)**
+          - Press **Save** and **Propagate**
+          - Apply the generated ConfigMap in your kubernetes cluster against the namespace in which application is deployed
+
+          - Navigate to **App pipelines** -> **Live Deployments**
+          - Press **Re-sync**
+
+          **HARDCODED CONFIGMAP BELOW, SHOULD BE REPLACED WITH GENERATED ONE AND REPLACE THE INSTRUCTIONS AT THE BEGINNING**
+          ```
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            creationTimestamp: null
+            name: argocd-notifications-cm
+          data:
+            service.webhook.release-webhook: |
+              url: http://loaclhost:5516/webhooks/path-4b2dda7d-a76b-46ce-be66-02c272de23c4
+              headers:
+              - name: Content-Type
+                value: application/json
+              - name: X-Release-Webhook-Token
+                value:
+              subscriptions: |
+                - recipients
+                  - release-webhook
+                  triggers:
+                  - on-app-status-changed
+
+            template.app-status-changed: |
+              webhook:
+                release-webhook:
+                  method: POST
+                  body: "{{.app | toJson }}"
+
+            trigger.on-app-status-changed: |
+              - description: Application health status is unknown.
+                when: app.status.health.status == 'Unknown' and app.metadata.deletionTimestamp == nil
+                send: [app-status-changed]
+              - description: Application health status is progressing.
+                when: app.status.health.status == 'Progressing' and app.metadata.deletionTimestamp == nil
+                send: [app-status-changed]
+              - description: Application health status is suspended.
+                when: app.status.health.status == 'Suspended' and app.metadata.deletionTimestamp == nil
+                send: [app-status-changed]
+              - description: Application health status is healthy.
+                when: app.status.health.status == 'Healthy' and app.metadata.deletionTimestamp == nil
+                send: [app-status-changed]
+              - description: Application health status is degraded.
+                when: app.status.health.status == 'Degraded' and app.metadata.deletionTimestamp == nil
+                send: [app-status-changed]
+              - description: Application health status is missing.
+                when: app.status.health.status == 'Missing' and app.metadata.deletionTimestamp == nil
+                send: [app-status-changed]
+              - description: Application sync status is unknown.
+                when: app.status.sync.status == 'Unknown' and app.metadata.deletionTimestamp == nil
+                send: [app-status-changed]
+              - description: Application sync status is synced.
+                when: app.status.sync.status == 'Synced' and app.metadata.deletionTimestamp == nil
+                send: [app-status-changed]
+              - description: Application sync status is out of sync.
+                when: app.status.sync.status == 'OutOfSync' and app.metadata.deletionTimestamp == nil
+                send: [app-status-changed]
+              - description: Application is deleted.
+                when: app.metadata.deletionTimestamp != nil
+                send: [app-status-changed]
+          ```
+        precondition: |-
+          import json
+
+          if releaseVariables["createNewDeploymentConfig"] == False:
+            result = False
+          else:
+            result = True
+      - name: Connect Workflows Together
+        type: liveDeployments.ConnectWorkflows
+        applicationName: "${applicationName}"
+        environmentName: "${namespace}"
+        precondition: |-
+          import json
+
+          if releaseVariables["createNewDeploymentConfig"] == False:
+            result = False
+          else:
+            result = True
     color: '#3d6c9e'
   kind: WORKFLOW
   categories:
@@ -286,12 +389,6 @@ spec:
     label: Replace
     description: "Caution: Uses kubectl replace/create commands"
   - type: xlrelease.StringVariable
-    key: managedApplicationId
-    showOnReleaseStart: false
-    label: Managed Application ID
-    description: "ID of the Managed Application, its value should come when running\
-      \ workflow as edit action from managed applications."
-  - type: xlrelease.StringVariable
     key: environmentTag
     showOnReleaseStart: false
     label: Environment Tag
@@ -310,20 +407,47 @@ spec:
     showOnReleaseStart: false
     label: Update Workflow CI ID
     description: CI ID of the the Update Workflow to be triggered as edit action from
-      managed applicationsScript (this is set by template)
+      live deployments (this is set by template)
   - type: xlrelease.StringVariable
     key: deleteWorkflowId
     requiresValue: false
     showOnReleaseStart: false
     label: Delete Workflow CI ID
     description: CI ID of the the Delete Workflow to be triggered as delete action
-      from managed applications (this is set by template)
+      from live deployments (this is set by template)
   - type: xlrelease.StringVariable
     key: folderId
     label: Managed Application Folder
     description: "Folder where Managed Application is or should be located, if empty\
       \ release/workflow execution folder will be used"
     value: Release
+  - type: xlrelease.StringVariable
+    key: deploymentConfigName
+    showOnReleaseStart: false
+    label: Deployment config name
+    description: Name of the deployment configuration to be created
+  - type: xlrelease.StringVariable
+    key: deploymentConfigType
+    showOnReleaseStart: false
+    label: Deployment config type
+    description: Type of the deployment configuration
+    valueProvider:
+      type: xlrelease.ListOfStringValueProviderConfiguration
+      values:
+        - ArgoCD Deployment Configuration
+        - Digital.ai Deploy Deployment Configuration
+  - type: xlrelease.StringVariable
+    key: appsToTrack
+    showOnReleaseStart: false
+    label: Applications to track
+    description: Applications to be tracked by deployment config
+    value: .*
+  - type: xlrelease.BooleanVariable
+    key: createNewDeploymentConfig
+    showOnReleaseStart: false
+    label: Create new deployment config
+    description: If false you should skip inputs below
+    value: true
   disableNotifications: true
   author: Digital.ai
   logo:
