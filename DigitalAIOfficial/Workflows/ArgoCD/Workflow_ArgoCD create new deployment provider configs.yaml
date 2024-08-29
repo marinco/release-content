@@ -1,0 +1,150 @@
+---
+apiVersion: xl-release/v1
+kind: Templates
+metadata:
+  home: Digital.ai - Official/Workflow Executions
+spec:
+- template: Create new ArgCD Deployment Provider Configuration
+  scheduledStartDate: 2024-08-28T09:00:00+02:00
+  phases:
+  - phase: Choose connection
+    tasks:
+    - name: Fetch connections
+      type: xlrelease.ScriptTask
+      script: |-
+        import json
+
+        folderId = getCurrentFolder().getId()
+        connections = configurationApi.searchByTypeAndTitle("argocd.APIServer", "", folderId)
+    - name: Create connection
+      type: liveDeployments.CreateArgoServer
+      serverUrl: "${serverUrl}"
+      serverUsername: "${serverUsername}"
+      precondition: |-
+        import json
+
+
+        if (releaseVariables["connections"] == None):
+          result = True
+        else:
+          result = False
+      variableMapping:
+        pythonScript.serverPassword: "${serverPassword}"
+    - name: Choose connection
+      type: xlrelease.UserInputTask
+      description: Please enter the required information below.
+      variables:
+      - connections
+    color: '#3d6c9e'
+  - phase: Configure connection
+    tasks:
+    - name: Configure connections
+      type: liveDeployments.CreateDeployment
+      deploymentConfigurationType: ArgoCD Deployment Configuration
+      deploymentConfigName: "${title}"
+      variableMapping:
+        pythonScript.connectionServer: "${connections}"
+    - name: Final steps
+      type: xlrelease.Task
+      description:  |-
+        **DIGITAL.ai Release**
+        - LiveDeployment was configured successfully in Release.
+
+        **Target deployment provider**
+        Copy the manifest below and apply it on cluster running the ArgoCD. See the documentation on below link to check details on how to enable Webhook events for your ArgoCD applciations.
+
+        ```
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          creationTimestamp: null
+          name: argocd-notifications-cm
+        data:
+          service.webhook.release-webhook: |
+            url: http://admins-MBP-18:5516/webhooks/path-4b2dda7d-a76b-46ce-be66-02c272de23c4
+            headers:
+            - name: Content-Type
+              value: application/json
+            - name: X-Release-Webhook-Token
+              value:
+            subscriptions: |
+              - recipients
+                - release-webhook
+                triggers:
+                - on-app-status-changed
+
+          template.app-status-changed: |
+            webhook:
+              release-webhook:
+                method: POST
+                body: "{{.app | toJson }}"
+
+          trigger.on-app-status-changed: |
+            - description: Application health status is unknown.
+              when: app.status.health.status == 'Unknown' and app.metadata.deletionTimestamp == nil
+              send: [app-status-changed]
+            - description: Application health status is progressing.
+              when: app.status.health.status == 'Progressing' and app.metadata.deletionTimestamp == nil
+              send: [app-status-changed]
+            - description: Application health status is suspended.
+              when: app.status.health.status == 'Suspended' and app.metadata.deletionTimestamp == nil
+              send: [app-status-changed]
+            - description: Application health status is healthy.
+              when: app.status.health.status == 'Healthy' and app.metadata.deletionTimestamp == nil
+              send: [app-status-changed]
+            - description: Application health status is degraded.
+              when: app.status.health.status == 'Degraded' and app.metadata.deletionTimestamp == nil
+              send: [app-status-changed]
+            - description: Application health status is missing.
+              when: app.status.health.status == 'Missing' and app.metadata.deletionTimestamp == nil
+              send: [app-status-changed]
+            - description: Application sync status is unknown.
+              when: app.status.sync.status == 'Unknown' and app.metadata.deletionTimestamp == nil
+              send: [app-status-changed]
+            - description: Application sync status is synced.
+              when: app.status.sync.status == 'Synced' and app.metadata.deletionTimestamp == nil
+              send: [app-status-changed]
+            - description: Application sync status is out of sync.
+              when: app.status.sync.status == 'OutOfSync' and app.metadata.deletionTimestamp == nil
+              send: [app-status-changed]
+            - description: Application is deleted.
+              when: app.metadata.deletionTimestamp != nil
+              send: [app-status-changed]
+        ```
+    color: '#3d6c9e'
+  kind: WORKFLOW
+  variables:
+  - type: xlrelease.ReferenceVariable
+    key: connections
+    showOnReleaseStart: false
+    label: Connections
+    referencedType: argocd.APIServer
+  - type: xlrelease.StringVariable
+    key: serverUrl
+    requiresValue: false
+    showOnReleaseStart: false
+    label: URL
+  - type: xlrelease.StringVariable
+    key: serverUsername
+    requiresValue: false
+    showOnReleaseStart: false
+    label: Username
+    value: admin
+  - type: xlrelease.PasswordStringVariable
+    key: serverPassword
+    requiresValue: false
+    showOnReleaseStart: false
+    label: Password
+  - type: xlrelease.StringVariable
+    key: title
+    showOnReleaseStart: false
+    label: Deployment Configuration Name
+    description: Name for the Deployment Configuration
+    value: argoCD server
+  disableNotifications: true
+  author: Digital.ai
+  logo:
+    type: xlrelease.TemplateLogo
+    contentType: image/png
+  defaultTargetFolder: Digital.ai - Official/Workflow Executions
+
