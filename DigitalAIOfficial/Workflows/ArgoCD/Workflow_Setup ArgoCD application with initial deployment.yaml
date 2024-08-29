@@ -248,21 +248,12 @@ spec:
             type: xlrelease.UserInputTask
             description: Please enter the required information below.
             variables:
-              - createNewDeploymentConfig
               - deploymentConfigName
-              - deploymentConfigType
-              - appsToTrack
           - name: Create live deployment config
             type: liveDeployments.CreateDeployment
+            deploymentConfigurationType: ArgoCD Deployment Configuration
             deploymentConfigName: "${deploymentConfigName}"
-            applications: "${appsToTrack}"
-            precondition: |-
-              import json
-              
-              if releaseVariables["createNewDeploymentConfig"] == False:
-                result = False
-              else:
-                result = True
+            applications: "${applicationName}"
             variableMapping:
               pythonScript.connectionServer: "${argoCDApiServer}"
           - name: Apply generated ArgoCD ConfigMap
@@ -341,24 +332,12 @@ spec:
                     when: app.metadata.deletionTimestamp != nil
                     send: [app-status-changed]
               ```
-            precondition: |-
-              import json
-              
-              if releaseVariables["createNewDeploymentConfig"] == False:
-                result = False
-              else:
-                result = True
-          - name: Connect Workflows Together
+          - name: Connect workflows together
             type: liveDeployments.ConnectWorkflows
             applicationName: "${applicationName}"
             environmentName: "${namespace}"
-            precondition: |-
-              import json
-              
-              if releaseVariables["createNewDeploymentConfig"] == False:
-                result = False
-              else:
-                result = True
+            updateWorkflowId: 'Update Application in ArgoCD'
+            deleteWorkflowId: 'Delete Application in ArgoCD'
         color: '#3d6c9e'
     kind: WORKFLOW
     categories:
@@ -623,20 +602,6 @@ spec:
         showOnReleaseStart: false
         label: Replace
         description: "Caution: Uses kubectl replace/create commands"
-      - type: xlrelease.StringVariable
-        key: deleteWorkflowId
-        requiresValue: false
-        showOnReleaseStart: false
-        label: Delete Workflow CI ID
-        description: CI ID of the the Delete Workflow to be triggered as delete action
-          from managed applications (this is set by template)
-      - type: xlrelease.StringVariable
-        key: updateWorkflowId
-        requiresValue: false
-        showOnReleaseStart: false
-        label: Update Workflow CI ID
-        description: CI ID of the the Update Workflow to be triggered as edit action from
-          managed applicationsScript (this is set by template)
       - type: xlrelease.MapStringStringVariable
         key: repositoryListResponse
         requiresValue: false
@@ -644,38 +609,24 @@ spec:
         label: Command Response
         description: Command Response
       - type: xlrelease.StringVariable
-        key: liveDeploymentId
-        requiresValue: false
-        showOnReleaseStart: false
-        label: Live Deployment ID
-        description: Application ID in Digital.ai Release
-      - type: xlrelease.StringVariable
         key: deploymentConfigName
         showOnReleaseStart: false
         label: Deployment config name
         description: Name of the deployment configuration to be created
       - type: xlrelease.StringVariable
-        key: deploymentConfigType
+        key: updateWorkflowId
+        requiresValue: false
         showOnReleaseStart: false
-        label: Deployment config type
-        description: Type of the deployment configuration
-        valueProvider:
-          type: xlrelease.ListOfStringValueProviderConfiguration
-          values:
-            - ArgoCD Deployment Configuration
-            - Digital.ai Deploy Deployment Configuration
+        label: Update Workflow CI ID
+        description: CI ID of the the Update Workflow to be triggered as edit action from
+          managed applicationsScript (this is set by template)
       - type: xlrelease.StringVariable
-        key: appsToTrack
+        key: deleteWorkflowId
+        requiresValue: false
         showOnReleaseStart: false
-        label: Applications to track
-        description: Applications to be tracked by deployment config
-        value: .*
-      - type: xlrelease.BooleanVariable
-        key: createNewDeploymentConfig
-        showOnReleaseStart: false
-        label: Create new deployment config
-        description: If false you should skip inputs below
-        value: true
+        label: Delete Workflow CI ID
+        description: CI ID of the the Delete Workflow to be triggered as delete action
+          from managed applications (this is set by template)
     disableNotifications: true
     author: Digital.ai
     logo:
