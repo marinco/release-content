@@ -4,7 +4,7 @@ kind: Templates
 metadata:
   home: Digital.ai - Official/Workflow Executions
 spec:
-- template: Create new ArgCD Deployment Provider Configuration
+- template: Create new ArgoCD Deployment Provider Configuration
   scheduledStartDate: 2024-08-28T09:00:00+02:00
   phases:
   - phase: Choose connection
@@ -12,8 +12,6 @@ spec:
     - name: Fetch connections
       type: xlrelease.ScriptTask
       script: |-
-        import json
-
         folderId = getCurrentFolder().getId()
         connections = configurationApi.searchByTypeAndTitle("argocd.APIServer", "", folderId)
     - name: Create connection
@@ -24,7 +22,7 @@ spec:
         import json
 
 
-        if (releaseVariables["connections"] == None):
+        if (releaseVariables["connections"].size == 0):
           result = True
         else:
           result = False
