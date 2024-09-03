@@ -267,71 +267,13 @@ spec:
               **FOLLOW STEPS BELOW TO FINISH CONFIGURING LIVE DEPLOYMENTS**
               Within folder where this workflow is exectued:
               - Navigate to **Connections** -> **ArgoCD Webhook Source (Container)**
-              - Press **Save** and **Propagate**
+              - Press **Save** and **Sync**
               - Apply the generated ConfigMap in your kubernetes cluster against the namespace in which application is deployed
               
               - Navigate to **App pipelines** -> **Live Deployments**
               - Press **Re-sync**
               
-              **HARDCODED CONFIGMAP BELOW, SHOULD BE REPLACED WITH GENERATED ONE AND REPLACE THE INSTRUCTIONS AT THE BEGINNING**
-              ```
-              apiVersion: v1
-              kind: ConfigMap
-              metadata:
-                creationTimestamp: null
-                name: argocd-notifications-cm
-              data:
-                service.webhook.release-webhook: |
-                  url: http://loaclhost:5516/webhooks/path-4b2dda7d-a76b-46ce-be66-02c272de23c4
-                  headers:
-                  - name: Content-Type
-                    value: application/json
-                  - name: X-Release-Webhook-Token
-                    value:
-                  subscriptions: |
-                    - recipients
-                      - release-webhook
-                      triggers:
-                      - on-app-status-changed
-              
-                template.app-status-changed: |
-                  webhook:
-                    release-webhook:
-                      method: POST
-                      body: "{{.app | toJson }}"
-              
-                trigger.on-app-status-changed: |
-                  - description: Application health status is unknown.
-                    when: app.status.health.status == 'Unknown' and app.metadata.deletionTimestamp == nil
-                    send: [app-status-changed]
-                  - description: Application health status is progressing.
-                    when: app.status.health.status == 'Progressing' and app.metadata.deletionTimestamp == nil
-                    send: [app-status-changed]
-                  - description: Application health status is suspended.
-                    when: app.status.health.status == 'Suspended' and app.metadata.deletionTimestamp == nil
-                    send: [app-status-changed]
-                  - description: Application health status is healthy.
-                    when: app.status.health.status == 'Healthy' and app.metadata.deletionTimestamp == nil
-                    send: [app-status-changed]
-                  - description: Application health status is degraded.
-                    when: app.status.health.status == 'Degraded' and app.metadata.deletionTimestamp == nil
-                    send: [app-status-changed]
-                  - description: Application health status is missing.
-                    when: app.status.health.status == 'Missing' and app.metadata.deletionTimestamp == nil
-                    send: [app-status-changed]
-                  - description: Application sync status is unknown.
-                    when: app.status.sync.status == 'Unknown' and app.metadata.deletionTimestamp == nil
-                    send: [app-status-changed]
-                  - description: Application sync status is synced.
-                    when: app.status.sync.status == 'Synced' and app.metadata.deletionTimestamp == nil
-                    send: [app-status-changed]
-                  - description: Application sync status is out of sync.
-                    when: app.status.sync.status == 'OutOfSync' and app.metadata.deletionTimestamp == nil
-                    send: [app-status-changed]
-                  - description: Application is deleted.
-                    when: app.metadata.deletionTimestamp != nil
-                    send: [app-status-changed]
-              ```
+              - Continue with the workflow
           - name: Connect workflows together
             type: liveDeployments.ConnectWorkflows
             applicationName: "${applicationName}"

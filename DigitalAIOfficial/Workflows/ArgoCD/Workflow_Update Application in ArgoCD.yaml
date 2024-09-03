@@ -34,8 +34,6 @@ spec:
               - clusterUrl
               - applicationName
               - projectName
-              - environmentTag
-              - managedBy
           - name: Git repository input
             type: xlrelease.UserInputTask
             description: "Git input fields. You can change the repository, path and branch."
@@ -167,7 +165,6 @@ spec:
         label: Revision
         description: The revision or branch in the Git repository to use for this application.
           Defaults to the latest commit in the default branch (HEAD).
-        value: HEAD
       - type: xlrelease.StringVariable
         key: chart
         requiresValue: false
@@ -179,20 +176,17 @@ spec:
         showOnReleaseStart: false
         label: Cluster url
         description: Kubernetes cluster URL where the application should be deployed.
-        value: https://kubernetes.default.svc
       - type: xlrelease.StringVariable
         key: projectName
         showOnReleaseStart: false
         label: Project name
         description: ArgoCD project name
-        value: default
       - type: xlrelease.StringVariable
         key: namespace
         showOnReleaseStart: false
         label: Namespace
         description: The Kubernetes namespace where the application should be deployed.
           Keeping the old value keeps the application in the same namespace.
-        value: default
       - type: xlrelease.StringVariable
         key: applicationName
         showOnReleaseStart: false
@@ -269,19 +263,6 @@ spec:
         showOnReleaseStart: false
         label: Replace
         description: "Caution: Uses kubectl replace/create commands"
-      - type: xlrelease.StringVariable
-        key: environmentTag
-        showOnReleaseStart: false
-        label: Environment Tag
-        description: "Marks how the application is managed, use Release value for apps\
-      \ managed from Release"
-        value: PROD
-      - type: xlrelease.StringVariable
-        key: managedBy
-        showOnReleaseStart: false
-        label: Managed by
-        description: "Marks how the application is managed, use Release value for apps\
-      \ managed from Release"
     disableNotifications: true
     author: Digital.ai
     logo:
