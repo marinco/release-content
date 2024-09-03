@@ -107,7 +107,7 @@ spec:
 
         ${autoconfigMessage}
 
-        [link](${autoconfigUrl})
+        [View in Deploy](${autoconfigUrl})
     color: '#3d6c9e'
   kind: WORKFLOW
   tags:
