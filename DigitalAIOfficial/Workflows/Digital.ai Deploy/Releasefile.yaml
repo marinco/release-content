@@ -9,3 +9,4 @@ spec:
   - Workflow_Helm Application Setup with Digital.ai Deploy.yaml
   - Workflow_Tomcat DataSource setup with Digital.ai Deploy.yaml
   - Workflow_Websphere JaasAlias setup with Digital.ai Deploy.yaml
+  - Workflow_Deploy create new deployment provider configs.yaml

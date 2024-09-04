@@ -4,7 +4,7 @@ kind: Templates
 metadata:
   home: Digital.ai - Official/Workflow Executions
 spec:
-  - template: Create new ArgoCD Deployment Provider Configuration
+  - template: Create new Deploy Deployment Provider Configuration
     scheduledStartDate: 2024-08-28T09:00:00+02:00
     dueDate: 2024-08-28T10:00:00+02:00
     phases:
@@ -14,15 +14,18 @@ spec:
             type: xlrelease.ScriptTask
             script: |-
               folderId = getCurrentFolder().getId()
-              connections = configurationApi.searchByTypeAndTitle("argocd.APIServer", "", folderId)
-              list = configurationApi.searchByTypeAndTitle("argocd.APIServer", "", folderId)
+              
+              connections = configurationApi.searchByTypeAndTitle("digitalai.DeployServer", "", folderId)
+              list = configurationApi.searchByTypeAndTitle("digitalai.DeployServer", "", folderId)
           - name: Create connection
-            type: liveDeployments.CreateArgoServer
-            ^title: argo server 2
-            serverUrl: "${serverUrl}"
+            type: liveDeployments.CreateDeployServer
+            folderId: Applications/Folder5ad818a911cb48bbbe304ba4768c9144/Folder2002844e78b64c06ab66f6474df2232c
+            ^title: "${title}"
+            serverUrl: https://url.deploy
             serverUsername: "${serverUsername}"
+            serverPassword: ""
             precondition: |-
-              if (releaseVariables["list"] == []):
+              if (releaseVariables['list'] == []):
                 result = True
               else:
                 result = False
@@ -110,11 +113,6 @@ spec:
         color: '#3d6c9e'
     kind: WORKFLOW
     variables:
-      - type: xlrelease.ReferenceVariable
-        key: connections
-        showOnReleaseStart: false
-        label: Connections
-        referencedType: argocd.APIServer
       - type: xlrelease.StringVariable
         key: serverUrl
         requiresValue: false
@@ -122,19 +120,51 @@ spec:
         label: URL
       - type: xlrelease.StringVariable
         key: serverUsername
+        requiresValue: false
         showOnReleaseStart: false
         label: Username
         value: admin
       - type: xlrelease.PasswordStringVariable
         key: serverPassword
+        requiresValue: false
         showOnReleaseStart: false
         label: Password
       - type: xlrelease.StringVariable
         key: title
         showOnReleaseStart: false
-        label: Deployment Server Configuration Name
-        description: Name for the ArgoCD server connection.
-        value: argoCD server
+        label: Deployment Configuration Name
+        description: Name for the Deployment Configuration
+        value: Deploy server
+      - type: xlrelease.StringVariable
+        key: proxyHost
+        requiresValue: false
+        showOnReleaseStart: false
+        label: Proxy Host
+      - type: xlrelease.StringVariable
+        key: proxyPort
+        requiresValue: false
+        showOnReleaseStart: false
+        label: Proxy Port
+      - type: xlrelease.StringVariable
+        key: proxyUsername
+        requiresValue: false
+        showOnReleaseStart: false
+        label: Proxy Username
+      - type: xlrelease.StringVariable
+        key: proxyDomain
+        requiresValue: false
+        showOnReleaseStart: false
+        label: Proxy Domain
+      - type: xlrelease.PasswordStringVariable
+        key: proxyPassword
+        requiresValue: false
+        showOnReleaseStart: false
+        label: Proxy Password
+      - type: xlrelease.ReferenceVariable
+        key: connections
+        showOnReleaseStart: false
+        label: Connections
+        referencedType: digitalai.DeployServer
       - type: xlrelease.StringVariable
         key: list
         requiresValue: false
@@ -142,7 +172,7 @@ spec:
         label: connList
         valueProvider:
           type: test.TestConnectionValueProvider
-          referencedType: argocd.APIServer
+          referencedType: digitalai.DeployServer
     disableNotifications: true
     author: Digital.ai
     defaultTargetFolder: Digital.ai - Official/Workflow Executions
