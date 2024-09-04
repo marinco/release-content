@@ -14,16 +14,15 @@ spec:
             type: xlrelease.ScriptTask
             script: |-
               folderId = getCurrentFolder().getId()
+              releaseVariables["list"] = configurationApi.searchByTypeAndTitle("digitalai.DeployServer", "", folderId)
               
-              connections = configurationApi.searchByTypeAndTitle("digitalai.DeployServer", "", folderId)
-              list = configurationApi.searchByTypeAndTitle("digitalai.DeployServer", "", folderId)
+              print(releaseVariables["list"])
           - name: Create connection
             type: liveDeployments.CreateDeployServer
-            folderId: Applications/Folder5ad818a911cb48bbbe304ba4768c9144/Folder2002844e78b64c06ab66f6474df2232c
+            folderId: Applications/Folderd2eca4b9bed9415ca430bd699421a9f8/Folder78478e1575a44a9cb76b1e3c300b31be
             ^title: "${title}"
             serverUrl: https://url.deploy
             serverUsername: "${serverUsername}"
-            serverPassword: ""
             precondition: |-
               if (releaseVariables['list'] == []):
                 result = True
@@ -165,14 +164,15 @@ spec:
         showOnReleaseStart: false
         label: Connections
         referencedType: digitalai.DeployServer
-      - type: xlrelease.StringVariable
+      - type: xlrelease.ListStringVariable
         key: list
         requiresValue: false
         showOnReleaseStart: false
-        label: connList
-        valueProvider:
-          type: test.TestConnectionValueProvider
-          referencedType: digitalai.DeployServer
+        label: List
     disableNotifications: true
     author: Digital.ai
+    logo:
+      type: xlrelease.TemplateLogo
+      contentType: image/svg+xml
+      file: !file "template-logo/16522bac6e7b33679818c4741e4d8b8eea639680/deploy.svg"
     defaultTargetFolder: Digital.ai - Official/Workflow Executions

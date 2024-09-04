@@ -14,15 +14,15 @@ spec:
             type: xlrelease.ScriptTask
             script: |-
               folderId = getCurrentFolder().getId()
-              connections = configurationApi.searchByTypeAndTitle("argocd.APIServer", "", folderId)
-              list = configurationApi.searchByTypeAndTitle("argocd.APIServer", "", folderId)
+              releaseVariables["plainList"] = configurationApi.searchByTypeAndTitle("argocd.APIServer", "", folderId)
           - name: Create connection
             type: liveDeployments.CreateArgoServer
-            ^title: argo server 2
+            folderId: Applications/Folderd2eca4b9bed9415ca430bd699421a9f8/Folder78478e1575a44a9cb76b1e3c300b31be
+            ^title: argoServer
             serverUrl: "${serverUrl}"
             serverUsername: "${serverUsername}"
             precondition: |-
-              if (releaseVariables["list"] == []):
+              if (releaseVariables["plainList"] == []):
                 result = True
               else:
                 result = False
@@ -135,14 +135,15 @@ spec:
         label: Deployment Server Configuration Name
         description: Name for the ArgoCD server connection.
         value: argoCD server
-      - type: xlrelease.StringVariable
-        key: list
+      - type: xlrelease.ListStringVariable
+        key: plainList
         requiresValue: false
         showOnReleaseStart: false
-        label: connList
-        valueProvider:
-          type: test.TestConnectionValueProvider
-          referencedType: argocd.APIServer
+        label: List
     disableNotifications: true
     author: Digital.ai
     defaultTargetFolder: Digital.ai - Official/Workflow Executions
+    logo:
+      type: xlrelease.TemplateLogo
+      contentType: image/svg+xml
+      file: !file "template-logo/ce5e2c55c1d65057d9d445256baef6fceef4e644/argocd.svg"
