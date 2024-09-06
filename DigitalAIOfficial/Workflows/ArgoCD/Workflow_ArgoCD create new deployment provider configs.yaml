@@ -8,17 +8,30 @@ spec:
     scheduledStartDate: 2024-08-28T09:00:00+02:00
     dueDate: 2024-08-28T10:00:00+02:00
     phases:
-      - phase: Choose connection
+      - phase: Check Connection
         tasks:
           - name: Fetch connections
             type: xlrelease.ScriptTask
             script: |-
               folderId = getCurrentFolder().getId()
               releaseVariables["plainList"] = configurationApi.searchByTypeAndTitle("argocd.APIServer", "", folderId)
+          - name: Add server configuration
+            type: xlrelease.UserInputTask
+            description: Please enter the required information below.
+            precondition: |-
+              if (releaseVariables["plainList"] == []):
+                result = True
+              else:
+                result = False
+            variables:
+              - title
+              - serverUrl
+              - serverUsername
+              - serverPassword
           - name: Create connection
             type: liveDeployments.CreateArgoServer
             folderId: Applications/Folderd2eca4b9bed9415ca430bd699421a9f8/Folder78478e1575a44a9cb76b1e3c300b31be
-            ^title: argoServer
+            ^title: "${title}"
             serverUrl: "${serverUrl}"
             serverUsername: "${serverUsername}"
             precondition: |-
@@ -26,14 +39,24 @@ spec:
                 result = True
               else:
                 result = False
+            variableMapping:
+              pythonScript.serverPassword: "${serverPassword}"
+        color: "#3d6c9e"
+      - phase: Choose Connection
+        tasks:
           - name: Choose connection
             type: xlrelease.UserInputTask
             description: Please enter the required information below.
             variables:
               - connections
-        color: "#3d6c9e"
       - phase: Configure connection
         tasks:
+          - name: Configuration values
+            type: xlrelease.UserInputTask
+            description: Please enter the required information below.
+            variables:
+              - configTitle
+              - configApps
           - name: Configure Live Deployment
             type: xlrelease.ScriptTask
             script: |-
@@ -44,10 +67,10 @@ spec:
               liveDeploymentConfiguration = Configuration()
               
               liveDeploymentConfiguration.type = Type.valueOf("argocd.DeploymentConfig")
-              liveDeploymentConfiguration.title = "argo config"
+              liveDeploymentConfiguration.title = "${configTitle}"
               if (folderId != ""):
                 liveDeploymentConfiguration.folderId = folderId
-              liveDeploymentConfiguration.setProperty("application", ".*")
+              liveDeploymentConfiguration.setProperty("application", "${configApps}")
               
               liveDeploymentConfiguration = configurationApi.addConfiguration(liveDeploymentConfiguration)
               
@@ -178,6 +201,15 @@ spec:
         showOnReleaseStart: false
         label: Script
         description: Script
+      - type: xlrelease.StringVariable
+        key: configTitle
+        showOnReleaseStart: false
+        label: Configuration Title
+      - type: xlrelease.StringVariable
+        key: configApps
+        showOnReleaseStart: false
+        label: Applications
+        value: .*
     disableNotifications: true
     author: Digital.ai
     logo:
