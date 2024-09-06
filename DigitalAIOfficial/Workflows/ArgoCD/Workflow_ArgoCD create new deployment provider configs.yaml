@@ -31,15 +31,37 @@ spec:
             description: Please enter the required information below.
             variables:
               - connections
-        color: '#3d6c9e'
+        color: "#3d6c9e"
       - phase: Configure connection
         tasks:
-          - name: Configure connections
-            type: liveDeployments.CreateDeployment
-            deploymentConfigurationType: ArgoCD Deployment Configuration
-            deploymentConfigName: "${title}"
-            variableMapping:
-              pythonScript.connectionServer: "${connections}"
+          - name: Configure Live Deployment
+            type: xlrelease.ScriptTask
+            script: |-
+              from com.xebialabs.xlrelease.domain import Configuration
+              from com.xebialabs.deployit.plugin.api.reflect import Type
+              
+              folderId = getCurrentFolder().getId()
+              liveDeploymentConfiguration = Configuration()
+              
+              liveDeploymentConfiguration.type = Type.valueOf("argocd.DeploymentConfig")
+              liveDeploymentConfiguration.title = "argo config"
+              if (folderId != ""):
+                liveDeploymentConfiguration.folderId = folderId
+              liveDeploymentConfiguration.setProperty("application", ".*")
+              
+              liveDeploymentConfiguration = configurationApi.addConfiguration(liveDeploymentConfiguration)
+              
+              releaseVariables['liveDeploymentConfig'] = liveDeploymentConfiguration.getId()
+          - name: Configure HTTP endpoint and Source Webhook
+            type: xlrelease.ScriptTask
+            script: |-
+              folderId = getCurrentFolder().getId()
+              server = releaseVariables['connections']
+              
+              liveDeploymentApi.setupApplicationStatusWebhook(folderId, server, "${liveDeploymentConfig}")
+        color: "#3d6c9e"
+      - phase: Final
+        tasks:
           - name: Final steps
             type: xlrelease.Task
             description: |-
@@ -107,7 +129,7 @@ spec:
                     when: app.metadata.deletionTimestamp != nil
                     send: [app-status-changed]
               ```
-        color: '#3d6c9e'
+        color: "#3d6c9e"
     kind: WORKFLOW
     variables:
       - type: xlrelease.ReferenceVariable
@@ -140,10 +162,26 @@ spec:
         requiresValue: false
         showOnReleaseStart: false
         label: List
+      - type: xlrelease.StringVariable
+        key: httpEvent
+        requiresValue: false
+        showOnReleaseStart: false
+        label: HttpEventId
+      - type: xlrelease.StringVariable
+        key: eventSource
+        requiresValue: false
+        showOnReleaseStart: false
+        label: EventSourceId
+      - type: xlrelease.StringVariable
+        key: liveDeploymentConfig
+        requiresValue: false
+        showOnReleaseStart: false
+        label: Script
+        description: Script
     disableNotifications: true
     author: Digital.ai
-    defaultTargetFolder: Digital.ai - Official/Workflow Executions
     logo:
       type: xlrelease.TemplateLogo
       contentType: image/svg+xml
-      file: !file "template-logo/ce5e2c55c1d65057d9d445256baef6fceef4e644/argocd.svg"
+      file: !file "template-logo/a3175dad2e24c9ec6103e96176fe39b6e76f7c06/argocd.svg"
+    defaultTargetFolder: Digital.ai - Official/Workflow Executions

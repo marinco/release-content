@@ -15,8 +15,6 @@ spec:
             script: |-
               folderId = getCurrentFolder().getId()
               releaseVariables["list"] = configurationApi.searchByTypeAndTitle("digitalai.DeployServer", "", folderId)
-              
-              print(releaseVariables["list"])
           - name: Create connection
             type: liveDeployments.CreateDeployServer
             folderId: Applications/Folderd2eca4b9bed9415ca430bd699421a9f8/Folder78478e1575a44a9cb76b1e3c300b31be
@@ -33,15 +31,37 @@ spec:
             description: Please enter the required information below.
             variables:
               - connections
-        color: '#3d6c9e'
+        color: "#3d6c9e"
       - phase: Configure connection
         tasks:
-          - name: Configure connections
-            type: liveDeployments.CreateDeployment
-            deploymentConfigurationType: ArgoCD Deployment Configuration
-            deploymentConfigName: "${title}"
-            variableMapping:
-              pythonScript.connectionServer: "${connections}"
+          - name: Configure Live Deployment
+            type: xlrelease.ScriptTask
+            script: |-
+              from com.xebialabs.xlrelease.domain import Configuration
+              from com.xebialabs.deployit.plugin.api.reflect import Type
+              
+              folderId = getCurrentFolder().getId()
+              liveDeploymentConfiguration = Configuration()
+              
+              liveDeploymentConfiguration.type = Type.valueOf("deploy.DeploymentConfig")
+              liveDeploymentConfiguration.title = "deploy config"
+              if (folderId != ""):
+                liveDeploymentConfiguration.folderId = folderId
+              liveDeploymentConfiguration.setProperty("application", ".*")
+              
+              liveDeploymentConfiguration = configurationApi.addConfiguration(liveDeploymentConfiguration)
+              
+              releaseVariables['liveDeploymentConfig'] = liveDeploymentConfiguration.getId()
+          - name: Configure HTTP endpoint and Source Webhook
+            type: xlrelease.ScriptTask
+            script: |-
+              folderId = getCurrentFolder().getId()
+              server = releaseVariables['connections']
+              
+              liveDeploymentApi.setupApplicationStatusWebhook(folderId, server, "${liveDeploymentConfig}")
+        color: "#3d6c9e"
+      - phase: Final
+        tasks:
           - name: Final steps
             type: xlrelease.Task
             description: |-
@@ -109,7 +129,7 @@ spec:
                     when: app.metadata.deletionTimestamp != nil
                     send: [app-status-changed]
               ```
-        color: '#3d6c9e'
+        color: "#3d6c9e"
     kind: WORKFLOW
     variables:
       - type: xlrelease.StringVariable
@@ -169,6 +189,21 @@ spec:
         requiresValue: false
         showOnReleaseStart: false
         label: List
+      - type: xlrelease.StringVariable
+        key: liveDeploymentConfig
+        requiresValue: false
+        showOnReleaseStart: false
+        label: LiveDeploymentConfigId
+      - type: xlrelease.StringVariable
+        key: eventSource
+        requiresValue: false
+        showOnReleaseStart: false
+        label: EventSourceId
+      - type: xlrelease.StringVariable
+        key: httpEvent
+        requiresValue: false
+        showOnReleaseStart: false
+        label: HttpEventId
     disableNotifications: true
     author: Digital.ai
     logo:
