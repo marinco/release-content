@@ -265,13 +265,17 @@ spec:
           - name: Configure deployment provider
             type: xlrelease.ScriptTask
             script: |-
+              from com.xebialabs.xlrelease.api.v1.forms import DeploymentProviderSetup
+  
               folderId = getCurrentFolder().getId()
               configId = releaseVariables['liveDeploymentConfigurationId']
               serverId = releaseVariables['argoCDApiServer']
               
-              webhookEventId = deploymentProviderApi.configureDeploymentProvider(folderId, serverId, configId)
+              deploymentProviderSetup = DeploymentProviderSetup(folderId, serverId, configId)
               
-              releaseVariables['statusWebhookEventSourceId'] = webhookEventId
+              statusWebhookEventSourceId = deploymentProviderApi.setupDeploymentProvider(deploymentProviderSetup)
+              
+              releaseVariables['statusWebhookEventSourceId'] = statusWebhookEventSourceId
           - name: Autoconfigure deployment provider
             type: xlrelease.ScriptTask
             script: |-
@@ -285,7 +289,7 @@ spec:
             description: |-
               ${autoConfigMessage}
               
-              ${autoConfigUrl}
+              [docs](${autoconfigUrl})
               
               ```
               ${autoConfigDetails}
