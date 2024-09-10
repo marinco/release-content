@@ -1,0 +1,115 @@
+---
+apiVersion: xl-release/v1
+kind: Templates
+metadata:
+  home: Digital.ai - Official/Workflow Executions
+spec:
+  - template: Create new Deploy Deployment Provider Configuration
+    scheduledStartDate: 2024-08-28T09:00:00+02:00
+    dueDate: 2024-08-28T10:00:00+02:00
+    phases:
+      - phase: Check Connection
+        tasks:
+          - name: Check if remote runner exists
+            type: xlrelease.ScriptTask
+            script: |-
+              def check_runners(runners):
+                for runner in runners:
+                  if runner["enabled"] and"remote" in runner["capabilities"]:
+                    return True
+                return False
+              
+              runners = configurationApi.searchByTypeAndTitle("xlrelease.JobRunner", "")
+              
+              if not check_runners(runners):
+                raise Exception("There is no job runner with 'remote' capability enabled")
+          - name: Fetch connections
+            type: xlrelease.ScriptTask
+            script: |-
+              folderId = getCurrentFolder().getId()
+              releaseVariables["list"] = configurationApi.searchByTypeAndTitle("digitalai.DeployServer", "", folderId)
+          - name: Choose connection
+            type: xlrelease.UserInputTask
+            description: Please enter the required information below.
+            variables:
+              - connections
+        color: "#3d6c9e"
+      - phase: Configure connection
+        tasks:
+          - name: Configure deployment provider
+            type: xlrelease.ScriptTask
+            script: |-
+              from com.xebialabs.xlrelease.api.v1.forms import DeploymentProviderSetup
+              
+              folderId = getCurrentFolder().getId()
+              serverId = releaseVariables['connections']
+              
+              deploymentProviderSetup = DeploymentProviderSetup(folderId, serverId)
+              
+              statusWebhookEventSourceId = deploymentProviderApi.setupDeploymentProvider(deploymentProviderSetup)
+              
+              releaseVariables['eventSource'] = statusWebhookEventSourceId
+          - name: Autoconfigure deployment provider
+            type: xlrelease.ScriptTask
+            script: |-
+              autoConfigResponse = deploymentProviderApi.autoconfigureDeploymentProvider("${eventSource}")
+              
+              releaseVariables['autoconfigMessage'] = autoConfigResponse.message
+              releaseVariables['autoconfigUrl'] = autoConfigResponse.url
+              releaseVariables['autoconfigDetails'] = autoConfigResponse.details
+        color: "#3d6c9e"
+      - phase: Final
+        tasks:
+          - name: Autoconfig response
+            type: xlrelease.Task
+            description: |-
+              ${autoconfigMessage}
+              
+              [docs](${autoconfigUrl})
+              
+              ```
+              ${autoconfigDetails}
+              ```
+        color: "#3d6c9e"
+    kind: WORKFLOW
+    variables:
+      - type: xlrelease.ReferenceVariable
+        key: connections
+        showOnReleaseStart: false
+        label: Connections
+        referencedType: digitalai.DeployServer
+      - type: xlrelease.ListStringVariable
+        key: list
+        requiresValue: false
+        showOnReleaseStart: false
+        label: List
+      - type: xlrelease.StringVariable
+        key: eventSource
+        requiresValue: false
+        showOnReleaseStart: false
+        label: EventSourceId
+      - type: xlrelease.StringVariable
+        key: autoconfigDetails
+        requiresValue: false
+        showOnReleaseStart: false
+        label: Description
+        description: The description of the item.
+      - type: xlrelease.StringVariable
+        key: autoconfigMessage
+        requiresValue: false
+        showOnReleaseStart: false
+        label: Description
+        description: The description of the item.
+      - type: xlrelease.StringVariable
+        key: autoconfigUrl
+        requiresValue: false
+        showOnReleaseStart: false
+        label: Description
+        description: The description of the item.
+    disableNotifications: true
+    author: Digital.ai
+    logo:
+      type: xlrelease.TemplateLogo
+      contentType: image/svg+xml
+      file: !file "template-logo/16522bac6e7b33679818c4741e4d8b8eea639680/deploy.svg"
+    defaultTargetFolder: Digital.ai - Official/Workflow Executions
