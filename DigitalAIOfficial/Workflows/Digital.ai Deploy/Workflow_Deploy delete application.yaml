@@ -2,14 +2,13 @@
 apiVersion: xl-release/v1
 kind: Templates
 metadata:
-  home: Digital.ai - Official/Workflows/ArgoCD
+  home: Digital.ai - Official/Workflows/Digital.ai Deploy
 spec:
-  - template: ArgoCD delete application
-    description: Delete Application in ArgoCD.
+  - template: Deploy delete application
     scheduledStartDate: 2023-04-27T15:00:00+02:00
     dueDate: 2023-04-27T16:00:00+02:00
     phases:
-      - phase: Delete Application in ArgoCD
+      - phase: Delete Application in Deploy
         tasks:
           - name: Check if remote runner exists
             type: xlrelease.ScriptTask
@@ -30,26 +29,37 @@ spec:
               from com.xebialabs.xlrelease.domain.environments import LiveDeployment
               
               liveDeployment = deploymentProviderApi.getLiveDeployment("${liveDeploymentId}")
-              applicationName = liveDeployment.getApplication().getTitle().split(":")[0]
               statusWebhookEventSource = configurationApi.getConfiguration(liveDeployment.eventSourceId)
               
+              applicationName = liveDeployment.getApplication().getTitle()
+              environmentName = liveDeployment.getEnvironment().getTitle()
+              environmentPath = liveDeployment.getEnvironment().getDeploymentTarget().getProperty("environmentPath")
+              environmentCiId = environmentPath.split("ciId=")[-1] if "ciId=" in environmentPath else ""
+              
               releaseVariables['statusWebhookEventSourceId'] = statusWebhookEventSource.id
+              releaseVariables['deployedApplication'] = environmentCiId + "/" + applicationName
               releaseVariables['applicationName'] = applicationName
-              releaseVariables['argoCDApiServer'] = statusWebhookEventSource["sourceServer"].id
+              releaseVariables['environmentName'] = environmentName
+              releaseVariables['server'] = statusWebhookEventSource["sourceServer"].id
           - name: Application Details
             type: xlrelease.UserInputTask
             description: Please enter the required information for application you want
               to delete.
             variables:
-              - applicationName
-              - argoCDApiServer
-          - name: Delete Application in ArgoCD
-            type: argocd.RemoveApplication
+              - server
+              - deployedApplication
+          - name: Undeploy Application in Deploy
+            type: deploy.Undeploy
             variableMapping:
-              server: "${argoCDApiServer}"
+              server: "${server}"
             capabilities:
               - remote
-            applicationName: "${applicationName}"
+            deployedApplication: "${deployedApplication}"
+            numberOfContinueRetrials: 0
+            pollingInterval: 10
+            numberOfPollingTrials: 0
+            displayStepLogs: true
+            connectionRetries: 10
           - name: Delete deployment configuration
             type: xlrelease.ScriptTask
             description: Deletes deployment configuration from event source if it matches
@@ -57,11 +67,13 @@ spec:
             script: |-
               statusWebhookEventSource = configurationApi.getConfiguration("${statusWebhookEventSourceId}")
               liveDeploymentConfigs = statusWebhookEventSource.getProperty("liveDeploymentConfigs")
-              applicationToDelete = "${applicationName}"
+              
+              applicationName = "${applicationName}"
+              environmentName = "${applicationName}"
               
               configToDelete = None
               for config in liveDeploymentConfigs:
-                  if config.getProperty("application") == applicationToDelete:
+                  if config.getProperty("application") == applicationName and config.getProperty("environment") == environmentName:
                       configToDelete = config
                       break
               
@@ -73,7 +85,7 @@ spec:
         color: "#3d6c9e"
     kind: WORKFLOW
     tags:
-      - Remote ArgoCD
+      - Remote Deploy
       - application
       - delete
     categories:
@@ -88,20 +100,32 @@ spec:
         requiresValue: false
         showOnReleaseStart: false
       - type: xlrelease.StringVariable
+        key: deployedApplication
+        requiresValue: false
+        showOnReleaseStart: false
+        label: Deployed Application
+        description: "Full name of the deployed application, e.g. Environments/ProdEnv/PetClinic"
+      - type: xlrelease.ReferenceVariable
+        key: server
+        requiresValue: false
+        showOnReleaseStart: false
+        label: Deploy server
+        description: Deploy server connection details
+        referencedType: digitalai.DeployServer
+      - type: xlrelease.StringVariable
         key: applicationName
+        requiresValue: false
         showOnReleaseStart: false
         label: Application Name
-        description: Application name to delete from ArgoCD
-      - type: xlrelease.ReferenceVariable
-        key: argoCDApiServer
+      - type: xlrelease.StringVariable
+        key: environmentName
+        requiresValue: false
         showOnReleaseStart: false
-        label: ArgoCD API server
-        description: ArgoCD Api Server connection details
-        referencedType: argocd.APIServer
+        label: Environment Name
     disableNotifications: true
     author: Digital.ai
     logo:
       type: xlrelease.TemplateLogo
       contentType: image/png
-      file: !file "template-logo/c9e27d5b1d5ed9738d58781439732acacd6b482d/argocd.svg"
+      file: !file "template-logo/97662a62108c2b1e1875c8e18f6d1c72a013d33c/deploy.svg"
     defaultTargetFolder: Digital.ai - Official/Workflow Executions

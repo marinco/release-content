@@ -1,5 +1,5 @@
 ---
-apiVersion: xl-release/v1
+apiVersion: xl/v1
 kind: Import
 spec:
   imports:
@@ -9,3 +9,7 @@ spec:
   - Workflow_Helm Application Setup with Digital.ai Deploy.yaml
   - Workflow_Tomcat DataSource setup with Digital.ai Deploy.yaml
   - Workflow_Websphere JaasAlias setup with Digital.ai Deploy.yaml
+  - Workflow_Deploy setup deployment provider.yaml
+  - Workflow_Deploy setup live deployment configuration.yaml
+  - Workflow_Deploy delete live deployment configuration.yaml
+  - Workflow_Deploy delete application.yaml
