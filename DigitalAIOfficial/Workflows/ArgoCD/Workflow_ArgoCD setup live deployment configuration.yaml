@@ -25,20 +25,15 @@ spec:
           liveDeploymentConfiguration = configurationApi.getConfiguration("${liveDeploymentConfigurationId}")
           releaseVariables['liveDeploymentConfigurationName'] = liveDeploymentConfiguration.title
           releaseVariables['liveDeploymentConfigurationApplication'] = liveDeploymentConfiguration.application
-    - name: Live deployment configuration name
+    - name: Live deployment configuration parameters
       type: xlrelease.UserInputTask
       description: |-
-        Add a name for your live deployment configuration.
-
+        Add a name and applications filter for your live deployment configuration.
+        
         **Target: ${targetServerTitle}**
         ${targetServerUrl}
       variables:
       - liveDeploymentConfigurationName
-    - name: Live deployment configuration filter
-      type: xlrelease.UserInputTask
-      description: Input the ArgoCD application filter to select applications from
-        the deployment server for live deployments.
-      variables:
       - liveDeploymentConfigurationApplication
     color: '#3d6c9e'
   - phase: Autoconfiguration

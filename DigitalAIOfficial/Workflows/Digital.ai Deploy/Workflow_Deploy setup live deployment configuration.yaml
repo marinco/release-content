@@ -26,20 +26,15 @@ spec:
           releaseVariables['liveDeploymentConfigurationName'] = liveDeploymentConfiguration.title
           releaseVariables['liveDeploymentConfigurationApplication'] = liveDeploymentConfiguration.application
           releaseVariables['liveDeploymentConfigurationEnvironment'] = liveDeploymentConfiguration.environment
-    - name: Live deployment configuration name
+    - name: Live deployment configuration parameters
       type: xlrelease.UserInputTask
       description: |-
-        Add a name for your live deployment configuration.
+        Add a name and application and environment filter for your live deployment configuration.
 
         **Target: ${targetServerTitle}**
         ${targetServerUrl}
       variables:
       - liveDeploymentConfigurationName
-    - name: Live deployment configuration filter
-      type: xlrelease.UserInputTask
-      description: Input the Deploy application and environment filter to select applications from
-        the deployment server for live deployments.
-      variables:
       - liveDeploymentConfigurationApplication
       - liveDeploymentConfigurationEnvironment
     color: '#3d6c9e'
