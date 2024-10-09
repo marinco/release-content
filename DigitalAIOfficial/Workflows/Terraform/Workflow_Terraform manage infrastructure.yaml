@@ -1,3 +1,7 @@
+# Exported from:        http://MBP-Marin:5516/
+# Release version:      24.1.0
+# Date created:         Wed Oct 09 16:14:02 CEST 2024
+
 ---
 apiVersion: xl-release/v1
 kind: Templates
@@ -8,8 +12,8 @@ spec:
 - template: Terraform manage infrastructure
   description: "Workflow provides the steps that create, update, or destroy infrastructure\
     \ in the cloud using Terraform."
-  scheduledStartDate: 2023-09-15T09:00:00+05:30
-  dueDate: 2023-09-15T10:00:00+05:30
+  scheduledStartDate: 2023-09-15T05:30:00+02:00
+  dueDate: 2023-09-15T06:30:00+02:00
   phases:
   - phase: Create|Destroy Infra
     tasks:
@@ -69,7 +73,7 @@ spec:
       gitUrl: "${gitUrl}"
       branch: "${branch}"
       gitDirPath: "${gitDirPath}"
-    color: '#3d6c9e'
+    color: "#3d6c9e"
   kind: WORKFLOW
   categories:
   - Infrastructure Service
@@ -116,5 +120,5 @@ spec:
   logo:
     type: xlrelease.TemplateLogo
     contentType: image/svg+xml
-    file: !file "template-logo/d3c8d925bd5ba7eade886d24807eabedfe646c4c/terraform.svg"
+    file: !file "template-logo/47dd789165897e372cef52e7a932da3a769891bc/terraform.svg"
   defaultTargetFolder: Digital.ai - Official/Workflow Executions

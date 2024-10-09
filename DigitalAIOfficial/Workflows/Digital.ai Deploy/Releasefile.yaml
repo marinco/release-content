@@ -1,15 +1,16 @@
+# Exported from:        http://MBP-Marin:5516/
+# Release version:      24.1.0
+# Date created:         Wed Oct 09 16:14:03 CEST 2024
+
 ---
 apiVersion: xl-release/v1
 kind: Import
 spec:
   imports:
-  - Workflow_AWS Lambda setup function with Digital.ai Deploy.yaml
+  - Permissions.yaml
+  - Workflow_AWS Lamba setup function with Digital.ai Deploy.yaml
   - Workflow_Azure setup application with Digital.ai Deploy.yaml
   - Workflow_GCP setup application with Digital.ai Deploy.yaml
-  - Workflow_Helm application setup with Digital.ai Deploy.yaml
+  - Workflow_Helm Application Setup with Digital.ai Deploy.yaml
   - Workflow_Tomcat DataSource setup with Digital.ai Deploy.yaml
   - Workflow_Websphere JaasAlias setup with Digital.ai Deploy.yaml
-  - Workflow_Deploy setup deployment server.yaml
-  - Workflow_Deploy setup live deployment configuration.yaml
-  - Workflow_Deploy delete live deployment configuration.yaml
-  - Workflow_Deploy delete application.yaml

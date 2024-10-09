@@ -1,6 +1,20 @@
+# Exported from:        http://MBP-Marin:5516/
+# Release version:      24.1.0
+# Date created:         Wed Oct 09 16:14:03 CEST 2024
+
 ---
 apiVersion: xl-release/v1
 kind: Import
 spec:
   imports:
   - Permissions.yaml
+  - Workflow_ArgoCD delete application.yaml
+  - Workflow_ArgoCD delete live deployment configuration.yaml
+  - Workflow_ArgoCD setup application.yaml
+  - Workflow_ArgoCD setup deployment provider.yaml
+  - Workflow_ArgoCD setup live deployment configuration.yaml
+  - Workflow_ArgoCD update application.yaml
+  - Workflow_Deploy delete application.yaml
+  - Workflow_Deploy delete live deployment configuration.yaml
+  - Workflow_Deploy setup deployment provider.yaml
+  - Workflow_Deploy setup live deployment configuration.yaml

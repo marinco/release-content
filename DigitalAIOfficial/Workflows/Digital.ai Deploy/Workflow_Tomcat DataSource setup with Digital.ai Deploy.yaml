@@ -1,3 +1,7 @@
+# Exported from:        http://MBP-Marin:5516/
+# Release version:      24.1.0
+# Date created:         Wed Oct 09 16:14:03 CEST 2024
+
 ---
 apiVersion: xl-release/v1
 kind: Templates
@@ -9,8 +13,8 @@ spec:
   description: "Easily create an application in Digital.ai Deploy that can be used\
     \ to create a DataSource in a Remote Tomcat Server, including its respective environment\
     \ and infrastructure setup."
-  scheduledStartDate: 2023-03-23T09:00:00+05:30
-  dueDate: 2023-03-23T10:00:00+05:30
+  scheduledStartDate: 2023-03-23T04:30:00+01:00
+  dueDate: 2023-03-23T05:30:00+01:00
   phases:
   - phase: Setup Infra and Env
     tasks:
@@ -228,54 +232,54 @@ spec:
             "username":"${dbUsername}",
             "password":"${dbPassword}"
         }
-    color: '#3d6c9e'
+    color: "#3d6c9e"
   - phase: Autoconfigure Release
     tasks:
     - name: Live deployment configuration input
       type: xlrelease.UserInputTask
       description: Enter desired name for your application configuration.
       variables:
-        - liveDeploymentConfigurationName
+      - liveDeploymentConfigurationName
     - name: Create live deployment configuration
       type: xlrelease.ScriptTask
       description: Creates configuration item to follow onboarded application.
       script: |-
         from com.xebialabs.xlrelease.domain import Configuration
         from com.xebialabs.deployit.plugin.api.reflect import Type
-        
+
         liveDeploymentConfiguration = Configuration()
         liveDeploymentConfiguration.type = Type.valueOf("deploy.DeploymentConfig")
         liveDeploymentConfiguration.title = "${liveDeploymentConfigurationName}"
         liveDeploymentConfiguration.folderId = getCurrentFolder().getId()
         liveDeploymentConfiguration.setProperty("application", "Applications/${applicationName}")
         liveDeploymentConfiguration.setProperty("environment", "Environments/${environmentName}")
-        
+
         liveDeploymentConfiguration = configurationApi.addConfiguration(liveDeploymentConfiguration)
-        
+
         releaseVariables['liveDeploymentConfigurationId'] = liveDeploymentConfiguration.getId()
-    - name: Setup deployment server
+    - name: Setup deployment provider
       type: xlrelease.ScriptTask
       description: Creates required configuration items in Release for connection
-        to deployment server.
+        to deployment provider.
       script: |-
-        from com.xebialabs.xlrelease.api.v1.forms import DeploymentServerSetup
-        
+        from com.xebialabs.xlrelease.api.v1.forms import DeploymentProviderSetup
+
         folderId = getCurrentFolder().getId()
         configId = releaseVariables['liveDeploymentConfigurationId']
         serverId = releaseVariables['deployServer']
-        
-        deploymentServerSetup = DeploymentServerSetup(folderId, serverId, configId)
-        
-        statusWebhookEventSourceId = deploymentServerApi.setupDeploymentServer(deploymentServerSetup)
-        
+
+        deploymentProviderSetup = DeploymentProviderSetup(folderId, serverId, configId)
+
+        statusWebhookEventSourceId = deploymentProviderApi.setupDeploymentProvider(deploymentProviderSetup)
+
         releaseVariables['statusWebhookEventSourceId'] = statusWebhookEventSourceId
-    - name: Autoconfigure deployment server
+    - name: Autoconfigure deployment provider
       type: xlrelease.ScriptTask
       description: Generates Deploy configuration items required to enable live event
         notifications.
       script: |-
-        autoConfigResponse = deploymentServerApi.autoconfigureDeploymentServer("${statusWebhookEventSourceId}")
-        
+        autoConfigResponse = deploymentProviderApi.autoconfigureDeploymentProvider("${statusWebhookEventSourceId}")
+
         releaseVariables['autoconfigMessage'] = autoConfigResponse.message
         releaseVariables['autoconfigUrl'] = autoConfigResponse.url
         releaseVariables['autoconfigDetails'] = autoConfigResponse.details
@@ -283,7 +287,7 @@ spec:
       type: xlrelease.Task
       description: |-
         ${autoconfigMessage}
-        
+
         [View in Deploy](${autoconfigUrl})
     color: "#3d6c9e"
   kind: WORKFLOW
@@ -428,5 +432,5 @@ spec:
   logo:
     type: xlrelease.TemplateLogo
     contentType: image/svg+xml
-    file: !file "template-logo/9a6971f732677b76071b3d996d2cbb1d77fb617a/deploy.svg"
+    file: !file "template-logo/7579ca5778047fc369c49e6192a1621666292282/deploy.svg"
   defaultTargetFolder: Digital.ai - Official/Workflow Executions

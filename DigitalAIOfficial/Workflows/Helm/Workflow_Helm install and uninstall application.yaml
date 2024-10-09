@@ -1,3 +1,7 @@
+# Exported from:        http://MBP-Marin:5516/
+# Release version:      24.1.0
+# Date created:         Wed Oct 09 16:14:02 CEST 2024
+
 ---
 apiVersion: xl-release/v1
 kind: Templates
@@ -8,8 +12,8 @@ spec:
 - template: Helm install and uninstall application
   description: The workflow provides the steps that install and uninstall the application
     using Helm.
-  scheduledStartDate: 2024-02-23T09:00:00+05:30
-  dueDate: 2024-02-23T10:00:00+05:30
+  scheduledStartDate: 2024-02-23T04:30:00+01:00
+  dueDate: 2024-02-23T05:30:00+01:00
   phases:
   - phase: Install and Uninstall App
     tasks:
@@ -64,7 +68,7 @@ spec:
       - remote
       releaseName: "${releaseName}"
       namespace: "${namespace}"
-    color: '#3d6c9e'
+    color: "#3d6c9e"
   kind: WORKFLOW
   categories:
   - Cloud & Container
@@ -122,5 +126,5 @@ spec:
   logo:
     type: xlrelease.TemplateLogo
     contentType: image/svg+xml
-    file: !file "template-logo/d4ffac29df794cb05e1ddb8ebc53e70b0ae26b6a/helm.svg"
+    file: !file "template-logo/c391242d0976ec8fb0db5bb2c5854660e6e35609/helm.svg"
   defaultTargetFolder: Digital.ai - Official/Workflow Executions

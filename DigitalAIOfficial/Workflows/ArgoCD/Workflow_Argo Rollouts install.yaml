@@ -1,3 +1,7 @@
+# Exported from:        http://MBP-Marin:5516/
+# Release version:      24.1.0
+# Date created:         Wed Oct 09 16:14:03 CEST 2024
+
 ---
 apiVersion: xl-release/v1
 kind: Templates
@@ -7,8 +11,8 @@ metadata:
 spec:
 - template: Argo Rollouts install
   description: Install Argo Rollouts to Kubernetes cluster.
-  scheduledStartDate: 2022-12-07T13:30:00+05:30
-  dueDate: 2022-12-07T14:30:00+05:30
+  scheduledStartDate: 2022-12-07T09:00:00+01:00
+  dueDate: 2022-12-07T10:00:00+01:00
   phases:
   - phase: Check if Argo Rollouts is already installed
     tasks:
@@ -62,7 +66,7 @@ spec:
         for service in services:
           if service.get('metadata', {}).get('name', '') == "argo-rollouts":
             raise Exception('Argo Rollouts is already installed in namespace ${namespace}')
-    color: '#3d6c9e'
+    color: "#3d6c9e"
   - phase: Install Argo Rollouts
     tasks:
     - name: Create argo-rollouts namespace
@@ -97,7 +101,7 @@ spec:
       - remote
       namespace: "${namespace}"
       labelSelector: app.kubernetes.io/name=argo-rollouts
-    color: '#3d6c9e'
+    color: "#3d6c9e"
   - phase: Create Argo Rollouts CI
     tasks:
     - name: Input for Argo Rollouts CI
@@ -116,8 +120,8 @@ spec:
       - argoRolloutsHost
     - name: Create Argo Rollouts CI
       type: xlrelease.ScriptTask
-      script: '# todo implement when argo rollouts plugin is done'
-    color: '#3d6c9e'
+      script: "# todo implement when argo rollouts plugin is done"
+    color: "#3d6c9e"
   kind: WORKFLOW
   categories:
   - Application onboarding
@@ -168,5 +172,5 @@ spec:
   logo:
     type: xlrelease.TemplateLogo
     contentType: image/png
-    file: !file "template-logo/ce5e2c55c1d65057d9d445256baef6fceef4e644/argocd.svg"
+    file: !file "template-logo/5a53e5d8988b3578428f22a4d91a98666309576c/argocd.svg"
   defaultTargetFolder: Digital.ai - Official/Workflow Executions

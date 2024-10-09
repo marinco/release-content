@@ -1,3 +1,7 @@
+# Exported from:        http://MBP-Marin:5516/
+# Release version:      24.1.0
+# Date created:         Wed Oct 09 16:14:02 CEST 2024
+
 ---
 apiVersion: xl-release/v1
 kind: Templates
@@ -8,8 +12,8 @@ spec:
 - template: ArgoCD install
   description: Install ArgoCD on Kubernetes cluster for deploying an Application in
     no time.
-  scheduledStartDate: 2022-12-07T13:30:00+05:30
-  dueDate: 2022-12-07T14:30:00+05:30
+  scheduledStartDate: 2022-12-07T09:00:00+01:00
+  dueDate: 2022-12-07T10:00:00+01:00
   phases:
   - phase: Check if ArgoCD is already installed
     tasks:
@@ -63,7 +67,7 @@ spec:
         for service in services:
           if service.get('metadata', {}).get('name', '') == "argocd-server":
             raise Exception('ArgoCD is already installed in namespace ${namespace}')
-    color: '#3d6c9e'
+    color: "#3d6c9e"
   - phase: Install ArgoCD
     tasks:
     - name: Create ArgoCD namespace
@@ -98,7 +102,7 @@ spec:
       - remote
       namespace: "${namespace}"
       labelSelector: app.kubernetes.io/name=argocd-server
-    color: '#3d6c9e'
+    color: "#3d6c9e"
   - phase: Create CIs for live deployment
     tasks:
     - name: Fetch secret
@@ -177,12 +181,12 @@ spec:
         eventSource.setProperty("filteredFolders", ["default"])
 
         configurationApi.addConfiguration(eventSource)
-    color: '#3d6c9e'
+    color: "#3d6c9e"
   kind: WORKFLOW
   categories:
+  - Infrastructure Service
   - Application onboarding
   - Application Life Cycle Management
-  - Infrastructure Service
   variables:
   - type: xlrelease.StringVariable
     key: namespace
@@ -233,5 +237,5 @@ spec:
   logo:
     type: xlrelease.TemplateLogo
     contentType: image/png
-    file: !file "template-logo/c9e27d5b1d5ed9738d58781439732acacd6b482d/argocd.svg"
+    file: !file "template-logo/c0856b35d61d93a77538ebb1a25caf04a8839599/argocd.svg"
   defaultTargetFolder: Digital.ai - Official/Workflow Executions

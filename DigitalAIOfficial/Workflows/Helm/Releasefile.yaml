@@ -1,6 +1,11 @@
+# Exported from:        http://MBP-Marin:5516/
+# Release version:      24.1.0
+# Date created:         Wed Oct 09 16:14:03 CEST 2024
+
 ---
 apiVersion: xl-release/v1
 kind: Import
 spec:
   imports:
+  - Permissions.yaml
   - Workflow_Helm install and uninstall application.yaml

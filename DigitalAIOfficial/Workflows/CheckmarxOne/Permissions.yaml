@@ -1,0 +1,30 @@
+# Exported from:        http://MBP-Marin:5516/
+# Release version:      24.1.0
+# Date created:         Wed Oct 09 16:14:03 CEST 2024
+
+---
+apiVersion: xl-release/v1
+kind: Permissions
+metadata:
+  path: Workflows/CheckmarxOne
+  home: Digital.ai - Official/Workflows/CheckmarxOne
+spec:
+- directory: "."
+  teams:
+  - name: Release Admin
+    permissions:
+    - release#edit_failure_handler
+    - release#edit_precondition
+    - release#lock_task
+  - name: Viewer
+    roles:
+    - Authenticated Users
+    permissions:
+    - folder#view
+    - template#view
+  - name: Folder Owner
+  - name: Template Owner
+    permissions:
+    - template#edit_failure_handler
+    - template#edit_precondition
+    - template#lock_task
